@@ -1,0 +1,56 @@
+import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core'
+import { createId } from '@paralleldrive/cuid2'
+
+export const users = sqliteTable('users', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  email: text('email').notNull().unique(),
+  name: text('name').notNull(),
+  avatarUrl: text('avatar_url'),
+  credits: integer('credits').notNull().default(100),
+  plan: text('plan', { enum: ['free', 'basic', 'pro', 'business'] }).notNull().default('free'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+})
+
+export const conversations = sqliteTable('conversations', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  userId: text('user_id').notNull().references(() => users.id),
+  title: text('title').notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+})
+
+export const messages = sqliteTable('messages', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  conversationId: text('conversation_id').notNull().references(() => conversations.id),
+  role: text('role', { enum: ['user', 'assistant', 'system'] }).notNull(),
+  content: text('content').notNull(),
+  metadata: text('metadata', { mode: 'json' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+})
+
+export const generations = sqliteTable('generations', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  conversationId: text('conversation_id').notNull().references(() => conversations.id),
+  messageId: text('message_id').references(() => messages.id),
+  type: text('type', { enum: ['image', 'video', 'audio'] }).notNull(),
+  provider: text('provider').notNull(),
+  prompt: text('prompt').notNull(),
+  resultUrl: text('result_url'),
+  metadata: text('metadata', { mode: 'json' }),
+  status: text('status', { enum: ['pending', 'processing', 'completed', 'failed'] }).notNull().default('pending'),
+  creditsUsed: integer('credits_used').notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  completedAt: integer('completed_at', { mode: 'timestamp' }),
+})
+
+export const creditTransactions = sqliteTable('credit_transactions', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  userId: text('user_id').notNull().references(() => users.id),
+  amount: integer('amount').notNull(),
+  type: text('type', { enum: ['purchase', 'usage', 'refund', 'bonus'] }).notNull(),
+  description: text('description').notNull(),
+  metadata: text('metadata', { mode: 'json' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+})
+
