@@ -1,6 +1,7 @@
 import { router, protectedProcedure, publicProcedure } from '../trpc/trpc';
 import { z } from 'zod';
 import { db } from '../db';
+import { eq } from 'drizzle-orm';
 import { videoGenerations, publications, adCampaigns, legalConversations, payments } from '../db/schema';
 import { YouTubeService } from '../services/youtube.service';
 import { SpotifyService } from '../services/spotify.service';
